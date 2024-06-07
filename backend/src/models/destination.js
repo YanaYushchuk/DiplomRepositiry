@@ -4,7 +4,9 @@ const Schema = mongoose.Schema;
 
 const DestinationSchema = new Schema({
   title: { type: String, required: true, maxLength: 1000 },
-  description: { type: String, required: true, maxLength: 8000 }
+  description: { type: String, required: true, maxLength: 8000 },
+  address: {type: String, required: false},
+  image: { type: String, required: true}
 });
 
 // Virtual for author's URL

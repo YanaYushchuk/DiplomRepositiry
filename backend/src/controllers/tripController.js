@@ -8,44 +8,74 @@ exports.trip_list = asyncHandler(async (req, res, next) => {
     res.send(allTrips);
 });
 
-// Search Trips with filters and sorting
 exports.search_trips = asyncHandler(async (req, res) => {
     try {
+        console.log('Значення параметра date:', req.query.date);
         let query = Trip.find();
 
-        // Filtering by destination if provided
+        // Фільтрація за пунктом призначення, якщо вказано
         if (req.query.destination) {
             const destination = await Destination.findOne({ _id: req.query.destination }).exec();
             if (destination) {
                 query = query.where('destinations').in([destination._id]);
             }
         }
-        // Sorting by price or alphabetically
+
+        // Фільтрація за датою, якщо вказано
+        if (req.query.date) {
+            const startDate = new Date(req.query.date);
+            const endDate = new Date(req.query.date);
+            endDate.setDate(endDate.getDate() + 1); // Додаємо 1 день, щоб врахувати всі подорожі, які починаються в цей день
+            query = query.where('startTime').gte(startDate).lt(endDate);
+        }
+
+        // Сортування за ціною або алфавітом
         let sortCriteria = {};
+
         if (req.query.price) {
             sortCriteria.price = req.query.price === 'desc' ? -1 : 1;
         }
+
         if (req.query.alphabetical) {
             sortCriteria.title = req.query.alphabetical === 'desc' ? -1 : 1;
         }
+
+        // Додавання сортування за датою, якщо вказано
+        if (req.query.date && !req.query.price) {
+            sortCriteria.startTime = req.query.date === 'desc' ? -1 : 1;
+        }
+
         if (Object.keys(sortCriteria).length !== 0) {
             query = query.sort(sortCriteria);
         }
 
-        // Pagination
+        // Пагінація
         const page = parseInt(req.query.page, 10) || 1;
         const limit = parseInt(req.query.limit, 10) || 10;
         const skip = (page - 1) * limit;
 
+        const totalTrips = await Trip.countDocuments(query.getFilter());
+        const totalPages = Math.ceil(totalTrips / limit);
+
         query = query.skip(skip).limit(limit);
 
-        // Execute query with pagination
+        // Виконання запиту з пагінацією
         const trips = await query.exec();
-        res.send(trips);
+
+        // Лог для перевірки відповіді
+        console.log('Запит:', req.query);
+        console.log('Знайдено подорожей:', trips.length);
+        console.log('Усього сторінок:', totalPages);
+
+        res.json({ trips, totalPages });
     } catch (error) {
-        res.status(500).send('Server error during trip search');
+        console.error('Помилка сервера під час пошуку подорожей:', error);
+        res.status(500).json({ message: 'Server error during trip search' });
     }
 });
+
+
+
 
 
 // Display detail page for a specific Trip.
@@ -145,7 +175,7 @@ exports.trip_update = asyncHandler(async (req, res, next) => {
         trip.title = req.body.title || trip.title;
         trip.description = req.body.description || trip.description;
         trip.price = req.body.price || trip.price;
-   
+
         // ... оновити інші поля за необхідності
 
         // Зберегти оновлену подорож

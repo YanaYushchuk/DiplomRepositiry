@@ -1,0 +1,46 @@
+/* Ticket.css */
+
+.ticket-container {
+  padding: 30px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+form {
+  margin: 0 auto;
+  width: 300px;
+}
+
+#fieldset {
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+/* input[type="number"] {
+  width: calc(100% - 20px);
+  margin-bottom: 10px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+} */
+
+button[type="submit"] {
+  width: 100%;
+  padding: 10px 0;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover {
+  background-color: #0056b3;
+}
+
+p {
+  font-weight: bold; /* Зробити текст жирним */
+  margin-bottom: 10px; /* Додати відступ вниз від параграфів */
+}

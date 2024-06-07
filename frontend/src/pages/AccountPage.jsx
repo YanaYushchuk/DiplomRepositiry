@@ -1,45 +1,72 @@
-import { useContext, useParams } from "react";
-import { useNavigate } from "react-router-dom";
+import AccountNav from "../AccountNav";
+import { useContext, useState } from "react";
+import { useParams } from "react-router-dom";
 import { UserContext } from "../UserContext.jsx";
 import Button from "@mui/material/Button";
+import axios from "axios";
+import './AccountPage.css'; // Імпортуємо CSS файл
 
 export default function AccountPage() {
-    const { isSignedIn, signOut, user } = useContext(UserContext);
-    // let {subpage} = useParams();
-    // if (subpage === undefined) { 
-    // subpage = 'profile';
-    // }
+  const { isSignedIn, signOut, user, setUser } = useContext(UserContext);
+  const [firstName, setFirstName] = useState(user?.firstname || "");
+  const [lastName, setLastName] = useState(user?.lastname || "");
+  let { subpage } = useParams();
+  if (subpage === undefined) {
+    subpage = "profile";
+  }
 
-    //console.log(subpage);
+  const handleUpdateProfile = async () => {
+    try {
+      const response = await axios.patch(`/userManager/user/${user.user_id}`, {
+        firstname: firstName,
+        lastname: lastName,
+      });
+      // Оновлюємо стан користувача новими даними
+      setUser((prevUser) => ({
+        ...prevUser,
+        firstname: firstName,
+        lastname: lastName,
+      }));
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    }
+  };
 
-    // function linkClasses(type = null) {
-    //     let classes = 'py-2 px-6 bg-gray-200 rounded-full';
-    //     if (type === subpage || (subpage === underfined && type === 'profile')) {
-    //         classes = 'py-2 px-6 bg-primary rounded-full';
-    //     }
-    //     return classes
-    // }
-    console.log("Acc Page isSignedIn = " + isSignedIn);
-    console.log("Acc Page user = " + user);
-    return (
-        <div>
-            <nav className="w-full justify-center flex mt-8 gap-4">
-                {/* <Link className={linkClasses('profile')} to={'/account'}>Профіль</Link>
-                <Link className={linkClasses('bookings')} to={'/account/bookings'}>Мої бронювання</Link> */}
-            </nav>
-            <div>
-                <form>{isSignedIn &&
-                    <Button onClick={signOut} variant="contained" sx={{ borderRadius: "25px", width: "100%" }}>Log out</Button>
-                }
-                    <div className="text-center py-2 text-gray-500"></div>
-                </form>
-                <p>
-                    User : {user.user_id}
-                </p>
-            </div>
+  return (
+    <div>
+      <AccountNav />
+      {user && subpage === "profile" && (
+        <div className="account-container">
+          <h2>Профіль</h2>
+          <p>
+            <span className="bold-label">Авторизовано як:</span> {user.user_id} 
+            <br />
+            <span className="bold-label">Ім'я користувача:</span> {user.firstname} {user.lastname}
+          </p>
+          <h1 className="bold-label">Введіть дані</h1>
+          <div>
+            <input
+              type="text"
+              placeholder="First Name"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+            />
+            <input
+              type="text"
+              placeholder="Last Name"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+            />
+            <Button onClick={handleUpdateProfile} variant="contained" color="primary" size="small">
+              Зберегти зміни
+            </Button>
+          </div>
+          <Button onClick={signOut} variant="contained" color="primary" size="small" className="logout-button">
+            Logout
+          </Button>
         </div>
-    );
+      )}
+      {subpage === "bookings" && <PlacesPage />}
+    </div>
+  );
 }
-
-
-
